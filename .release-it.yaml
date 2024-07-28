@@ -1,0 +1,9 @@
+git:
+  push: true
+github:
+  release: true
+  web: true
+  assets:
+    - build/livechat*
+hooks:
+  after:bump: ./build.sh
