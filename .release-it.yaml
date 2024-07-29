@@ -7,4 +7,5 @@ github:
   assets:
     - build/livechat*
 hooks:
-  after:bump: ./build.sh
+  "after:bump":
+    - ./build.sh
