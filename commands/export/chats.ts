@@ -1,4 +1,4 @@
-import { defineCommand } from "citty";
+import { defineCommand, type CommandContext } from "citty";
 import { consola } from "consola";
 import { get } from "radash";
 import PQueue from "p-queue";
@@ -9,14 +9,32 @@ import type { ChatData } from "../../types";
 
 const queue = new PQueue({
   autoStart: true,
+  concurrency: 1,
 });
 
-const jsonFormatter = (chat: ChatData) => JSON.stringify(chat, null, 4);
+const jsonExporter = async (
+  chat: ChatData,
+  { directory }: { directory: string }
+) => {
+  const chatId = get<ChatData["id"]>(chat, "id");
+  const threadId = get<ChatData["thread"]["id"]>(chat, "id");
+  const filename = resolve(directory, `${chatId}-${threadId}.json`);
 
-const plainConvoFormatter = (chat: ChatData) => {
+  const content = JSON.stringify(chat, null, 4);
+
+  await Bun.write(filename, content);
+};
+
+const plainConvoExporter = async (
+  chat: ChatData,
+  { directory }: { directory: string }
+) => {
+  const chatId = get<ChatData["id"]>(chat, "id");
+  const filename = resolve(directory, `${chatId}.txt`);
+
   const events = get<ChatData["thread"]["events"]>(chat, "thread.events", []);
 
-  const content = events
+  const threadContent = events
     .filter((event) => event.type === "message")
     .filter((event) => event.visibility === "all")
     .reduce((output, event) => {
@@ -26,7 +44,12 @@ const plainConvoFormatter = (chat: ChatData) => {
       return `${output}${line}`;
     }, "");
 
-  return content;
+  const fileContent = (await Bun.file(filename).exists())
+    ? await Bun.file(filename).text()
+    : "";
+
+  const data = fileContent + threadContent;
+  await Bun.write(filename, data);
 };
 
 export const exportChatsCommand = defineCommand({
@@ -60,25 +83,6 @@ export const exportChatsCommand = defineCommand({
 
     const filters = JsonURL.parse(context.args.filters ?? "");
 
-    const writeChatToDisk = async (chat: ChatData) => {
-      const chatId = get(chat, "id");
-      const threadId = get(chat, "thread.id");
-      const fileContent =
-        context.args.view === "plain-convo"
-          ? plainConvoFormatter(chat)
-          : jsonFormatter(chat);
-
-      const fileExt = context.args.view === "plain-convo" ? "txt" : "json";
-
-      const filename = resolve(
-        String(context.args.directory),
-        `${chatId}-${threadId}.${fileExt}`
-      );
-
-      consola.debug(`Writing chat to disk`, { chatId, threadId, filename });
-      await Bun.write(filename, fileContent);
-    };
-
     const fetchChats = async (pageId?: string) => {
       consola.debug("Fetching chats...", {
         pageId,
@@ -92,7 +96,19 @@ export const exportChatsCommand = defineCommand({
       const nextPageId = get<string | undefined>(response, "next_page_id");
       const chats = get<ChatData[]>(response, "chats", []);
 
-      queue.addAll(chats.map((chat) => () => writeChatToDisk(chat)));
+      queue.addAll(
+        chats.map((chat) => async () => {
+          if (context.args.view === "json") {
+            return jsonExporter(chat, { directory: context.args.directory });
+          }
+
+          if (context.args.view === "plain-convo") {
+            return plainConvoExporter(chat, {
+              directory: context.args.directory,
+            });
+          }
+        })
+      );
 
       if (nextPageId) {
         queue.add(() => fetchChats(nextPageId));
