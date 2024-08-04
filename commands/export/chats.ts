@@ -1,6 +1,6 @@
 import { defineCommand, type CommandContext } from "citty";
 import { consola } from "consola";
-import { get } from "radash";
+import { get, title } from "radash";
 import PQueue from "p-queue";
 import JsonURL from "@jsonurl/jsonurl";
 import { resolve } from "path";
@@ -38,18 +38,29 @@ const plainConvoExporter = async (
     .filter((event) => event.type === "message")
     .filter((event) => event.visibility === "all")
     .reduce((output, event) => {
-      const authorType = event.author_id?.includes("@") ? "Agent" : "Visitor";
-      const line = `${authorType}: ${event.text}\n`;
+      const author = getAuthor(chat, event);
+      const line = `${title(author?.type)}: ${event.text}\n`;
 
       return `${output}${line}`;
     }, "");
 
   const fileContent = (await Bun.file(filename).exists())
-    ? await Bun.file(filename).text()
+    ? (await Bun.file(filename).text()) + "-------\n"
     : "";
 
   const data = fileContent + threadContent;
   await Bun.write(filename, data);
+};
+
+const getAuthor = (
+  chat: ChatData,
+  event: ChatData["thread"]["events"] extends (infer U)[] ? U : never
+) => {
+  const users = chat.users;
+
+  const user = users.find((user) => user.id === event.author_id);
+
+  return user;
 };
 
 export const exportChatsCommand = defineCommand({
