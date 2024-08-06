@@ -1,20 +1,17 @@
-import { loadConfig } from "c12";
 import { ofetch } from "ofetch";
 import { get } from "radash";
 
-interface Configuration {
-	livechatBase64EncodedToken: string;
-}
-
-const { config } = await loadConfig<Configuration>({
-	configFile: "livechat-cli",
-});
+const base64EncodedToken = get(
+	process.env,
+	"LIVECHAT_BASE64_ENCODED_TOKEN",
+	"",
+);
 
 const baseURL = "https://api.livechatinc.com/v3.5";
 
 export const livechatApiClient = ofetch.create({
 	baseURL,
-	headers: [["Authorization", `Basic ${config.livechatBase64EncodedToken}`]],
+	headers: [["Authorization", `Basic ${base64EncodedToken}`]],
 	body: {},
 });
 
