@@ -1,25 +1,27 @@
 {
-  "name": "livechat-cli",
-  "module": "livechat.ts",
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "bun --watch livechat.ts"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "release-it": "^17.6.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@jsonurl/jsonurl": "^1.1.8",
-    "c12": "^1.11.1",
-    "citty": "^0.1.6",
-    "consola": "^3.2.3",
-    "ofetch": "^1.3.4",
-    "p-queue": "^8.0.1",
-    "radash": "^12.1.0"
-  }
+	"name": "livechat-cli",
+	"module": "livechat.ts",
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch livechat.ts"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.8.3",
+		"@types/bun": "latest",
+		"lefthook": "^1.7.11",
+		"release-it": "^17.6.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@jsonurl/jsonurl": "^1.1.8",
+		"c12": "^1.11.1",
+		"citty": "^0.1.6",
+		"consola": "^3.2.3",
+		"ofetch": "^1.3.4",
+		"p-queue": "^8.0.1",
+		"radash": "^12.1.0"
+	}
 }
