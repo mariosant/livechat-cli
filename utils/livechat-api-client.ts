@@ -19,3 +19,8 @@ export const agentApiClient = livechatApiClient.create({
 	baseURL: `${baseURL}/agent`,
 	method: "POST",
 });
+
+export const configurationApiClient = livechatApiClient.create({
+	baseURL: `${baseURL}/configuration`,
+	method: "POST",
+});

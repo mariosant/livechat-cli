@@ -1,4 +1,5 @@
 import { defineCommand } from "citty";
+import { apiCommand } from "./api";
 import { exportCommand } from "./export";
 
 export const mainCommand = defineCommand({
@@ -8,5 +9,6 @@ export const mainCommand = defineCommand({
 	},
 	subCommands: {
 		export: exportCommand,
+		api: apiCommand,
 	},
 });
